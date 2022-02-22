@@ -2,19 +2,54 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <string.h>
+
+
+char readln_buf[2048];
+
+int readln_bud_end;
+
+int readln_buf_pos;
+
+
+int readc(int fd, char *c){
+    //verifica se tenho mais bytes para ler
+
+
+    // se tiver, retorna escreve no endereço (c) e atualiza estado global (pos atual)
+
+
+    //se nao tiver, vai ler a disco, e retorna 1 carater (atualizando o estado)
+
+    return read(fd, c, 1);
+}
+
 
 
 ssize_t readln(int fd, char *line, size_t size){
-    int ln_size;
-    char c;
+    int i;
 
-    for(ln_size = 0; ln_size < size && read(fd, &c, 1) > 0; ln_size++){
-        line[ln_size] = c; 
-        if(c == '\n'){ ln_size++; break;}
+    for(i = 0; i < size && read(fd, &line[i], 1) > 0; i++){ 
+        if(line[i] == '\n') {i++; break;}
     }
 
-    return ln_size;
+    return i;
 }
+
+
+
+ssize_t readln2(int fd, char *line, size_t size){
+    int n_bytes = read(fd, line, size);
+    char *backup = line;
+    char *pos = strchr(line, '\n');
+
+    if(pos){
+        lseek(fd, -(line-pos+1), SEEK_CUR);
+    }
+
+    return pos-backup+1;
+}
+
 
 
 int main(int argc, char *argv[]){
