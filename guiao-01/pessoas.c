@@ -2,45 +2,73 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-struct Person{
-    char name[20]; // 20 bytes
+typedef struct Person{
+    char name[30]; // 30 bytes
     int age; // 4 bytes
-}Person;
+} Person;
 
 
 int main(int argc, char* argv[]){
+    if(argc == 4){
+            if(!strcmp(argv[1], "-i")){
+            int file = open("file.bin", O_CREAT | O_APPEND | O_RDWR, 0640);
+
+            Person p;
+            strcpy(p.name, argv[2]);
+            p.age = atoi(argv[3]);
+
+            int n_bytes = write(file, &p, sizeof(struct Person));
+
+            if(n_bytes < 0){
+                perror("Write");
+                return 1;
+            }
+
+            printf("Registo efetuado com sucesso. Posição : %ld", lseek(file, 0, SEEK_END) / sizeof(struct Person));
 
 
+        }
+        else if(!strcmp(argv[1], "-u")){
+            int file = open("file.bin", O_CREAT | O_RDWR, 0640);
 
-    int f = open("file.bin", O_CREAT | O_TRUNC | O_RDWR, 0640);
+            Person p;
 
-    struct Person p;
+            while(read(file, &p, sizeof(struct Person)) > 0){
+                if(!strcmp(p.name, argv[2])){
+                    p.age = atoi(argv[3]);
 
-    char *name = "tone esteves";
+                    lseek(file, -sizeof(struct Person), SEEK_CUR);
 
-    strcpy(p.name, name);
-    p.age = 44;
+                    write(file, &p, sizeof(struct Person));
+                }
+            }
+        }
+        else if(!strcmp(argv[1], "-o")){
+            int file = open("file.bin", O_CREAT | O_RDWR, 0640);
 
-    int bytes = write(f, &p, sizeof(struct Person));
+            Person p;
 
-    struct Person p1_read;
+            lseek(file, (atoi(argv[2])-1)*sizeof(struct Person), SEEK_SET);
 
-    lseek(f, -sizeof(struct Person), SEEK_END);
+            read(file, &p, sizeof(struct Person));
+            p.age = atoi(argv[3]);
 
-    bytes = read(f, &p1_read, sizeof(struct Person));
+            lseek(file, -sizeof(struct Person), SEEK_CUR);
 
-    if(bytes < 0){
-        perror("read");
-        return 1;
+            write(file, &p, sizeof(struct Person));            
+        }
     }
 
+    int file = open("file.bin", O_RDONLY);
 
-    printf("%d\n", bytes);
-    printf("nome : %s\n", p1_read.name);
-    printf("idade : %d\n", p1_read.age);
+    Person p;
 
+    while(read(file, &p, sizeof(struct Person)) > 0){
+        printf("Nome : %s | Idade : %d\n", p.name, p.age);
+    }
 
     return 1;
 }

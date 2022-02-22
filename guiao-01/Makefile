@@ -2,7 +2,11 @@ CC = gcc
 
 CFLAGS = -Wall
 
-all : mynl mycat mycp
+all : mynl mycat mycp pessoas
+
+pessoas : pessoas.o
+
+pessoas.o : pessoas.c
 
 mynl : mynl.o
 
@@ -21,3 +25,4 @@ clean :
 	@rm mynl
 	@rm mycat
 	@rm mycp
+	@rm pessoas
